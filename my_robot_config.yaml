@@ -1,0 +1,36 @@
+# my_robot_config.yaml
+
+ros:
+  # 1. KUKA 机械臂 (假设 7 轴)
+  # ----------------------------
+  joint_state:
+    topic: /iiwa/joint_states     # KUKA 驱动发布的 Topic 名字
+    field: position          # 我们取 position 字段
+
+  # 2. Robotiq 夹爪 (来自我们的桥接脚本)
+  # ----------------------------
+  gripper_state:
+    topic: /robotiq/position # 对应 gripper_bridge.py 里的 TOPIC_NAME
+    field: data              # Float32 消息的数据字段名叫 data
+
+  # 3. 动作 (Action)
+  # ----------------------------
+  # 在录制数据时，我们通常把"当前的机器人状态"当作"期望的动作" (用于示教回放)
+  # 所以这里我们再次订阅同样的 Topic
+  action_arm:
+    topic: /joint_states
+    field: position
+
+  action_gripper:
+    topic: /robotiq/position
+    field: data
+
+sensors:
+  # 4. RealSense 摄像头
+  # ----------------------------
+  camera_primary:
+    type: ros
+    topic: /camera/color/image_raw  # RealSense launch 文件发布的默认 Topic
+    fps: 30
+    hape: [ 3, 480, 640 ]
+
