@@ -13,6 +13,7 @@ It is designed to bridge **ROS Noetic** with the **[Hugging Face LeRobot](https:
 * **🔌 Hardware Bridge**: Includes a lightweight, pure-Python driver for Robotiq grippers via Modbus RTU (no complex C++ compilation required).
 * **⚙️ Configurable**: All ROS topics, paths, and robot parameters are managed via a single `config.yaml` file.
 * **🛡️ Robust Error Handling**: Features auto-save on interrupt and fixes common LeRobot schema validation issues.
+* **👁️ RealSense Ready**: optimized configuration for Intel RealSense cameras (RGB alignment & resolution locking).
 
 ---
 
@@ -32,8 +33,8 @@ It is designed to bridge **ROS Noetic** with the **[Hugging Face LeRobot](https:
 ### 1. System Requirements
 * **OS**: Ubuntu 20.04 (Recommended)
 * **ROS**: Noetic
-* **Hardware**: Kuka IIWA Robot, Robotiq 2F-85 Gripper, Camera (RealSense/USB), Gamepad (Xbox/PS4).
-
+* **Hardware**: Kuka IIWA Robot, Robotiq 2F-85 Gripper, Intel RealSense Camera (D415/D435/D405), xbox handjoy.
+* 
 ### 2. Environment Setup (From Scratch)
 
 We strongly recommend using Conda to manage the Python environment (Python 3.10 is required for LeRobot).
@@ -53,6 +54,10 @@ pip3 install torch torchvision torchaudio --index-url [https://download.pytorch.
 
 # 3. Install ROS Bridge & Hardware libraries
 pip install rospkg empy catkin_pkg numpy opencv-python pyyaml pymodbus==2.5.3 pyserial
+
+# 4. Install ROS Realsense driver
+sudo apt-get install ros-noetic-realsense2-camera ros-noetic-realsense2-description
+
 ```
 #### Step C: Install LeRobot
 ```bash
@@ -67,7 +72,7 @@ sudo apt install ros-noetic-joy -y
 ```
 ## 🚀 Usage Guide
 
-To start the system, you will need **4 separate terminal tabs**.
+To start the system, you will need **5 separate terminal tabs**.
 
 ### 1️⃣ Preparation
 * Connect the USB gripper and Gamepad.
@@ -99,8 +104,15 @@ conda activate lerobot_env
 python3 gripper_bridge.py
 # Look for: "✅ 夹爪激活完成！"
 ```
-
-### 5️⃣ Start Recorder (Terminal 4)
+### 5️⃣ Start RealSense Camera (Terminal 4)
+```bash
+roslaunch realsense2_camera rs_camera.launch \
+    color_width:=640 \
+    color_height:=480 \
+    color_fps:=30 \
+    align_depth:=false
+```
+### 6️⃣ Start Recorder (Terminal 5)
 This script handles the recording logic.
 ```bash
 conda activate lerobot_env
