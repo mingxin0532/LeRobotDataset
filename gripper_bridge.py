@@ -35,6 +35,7 @@ def activate_gripper(client):
     # 检查并激活夹爪
     try:
         # 读取状态寄存器 0x07D0
+
         result = client.read_holding_registers(address=0x07D0, count=1, slave=SLAVE_ID)
         if not result.isError():
             status_byte = (result.registers[0] >> 8) & 0xFF
