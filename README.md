@@ -25,6 +25,7 @@ It is designed to bridge **ROS Noetic** with the **[Hugging Face LeRobot](https:
 | `gripper_bridge.py` | **Driver**. Connects to the Robotiq gripper via USB and exposes it as a ROS node. |
 | `lerobot_recorder_pro.py` | **Main Logic**. Handles teleoperation, data synchronization, and recording. |
 | `README.md` | **Documentation**. Installation and usage guide. |
+| `xbox_controller.py` | **Input Module**. Handles joystick mapping, button logic, and safety switches. Isolated for easy customization. |
 
 ---
 
@@ -94,7 +95,17 @@ rosrun joy joy_node
 Launch your specific Kuka driver (e.g., `iiwa_stack` or MoveIt).
 ```bash
 # Example
-roslaunch iiwa_driver iiwa_bringup.launch
+rosrun iiwa_python teleop_position_iiwa01.py \
+    _rate_hz:=500.0 \
+    _linear_scale:=20 \
+    _angular_scale:=20 \
+    _deadman_button:=4 \
+    _axis_vx:=1 \
+    _axis_vy:=0 \
+    _axis_vz:=4 \
+    _axis_wz:=3 \
+    _log_dir:=/home/mingxin/iiwa_logs \
+    _frame_id:=iiwa_link_0
 ```
 
 ### 4️⃣ Start Gripper Bridge (Terminal 3)
@@ -117,6 +128,8 @@ This script handles the recording logic.
 ```bash
 conda activate lerobot_env
 python3 lerobot_recorder_pro.py
+#(it automatically imports xbox_controller.py)
+
 ```
 ---
 
