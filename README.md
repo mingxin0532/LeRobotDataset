@@ -42,8 +42,9 @@ We strongly recommend using Conda to manage the Python environment (Python 3.10 
 ```bash
 conda create -n lerobot_env python=3.10 -y
 conda activate lerobot_env
-
+```
 #### Step B: Install Core Dependencies
+```bash
 # 1. Install FFmpeg
 conda install -c conda-forge ffmpeg -y
 
@@ -52,17 +53,107 @@ pip3 install torch torchvision torchaudio --index-url [https://download.pytorch.
 
 # 3. Install ROS Bridge & Hardware libraries
 pip install rospkg empy catkin_pkg numpy opencv-python pyyaml pymodbus==2.5.3 pyserial
-
+```
 #### Step C: Install LeRobot
+```bash
 git clone [https://github.com/huggingface/lerobot.git](https://github.com/huggingface/lerobot.git)
 cd lerobot
 pip install -e .
 cd ..
-
+```
 #### Step D: Install ROS Joy Driver
+```bash
 sudo apt install ros-noetic-joy -y
-
+```
 ## 🚀 Usage Guide
-To start the system, you will need 4 separate terminal tabs.
 
+To start the system, you will need **4 separate terminal tabs**.
 
+### 1️⃣ Preparation
+* Connect the USB gripper and Gamepad.
+* Grant permission to the USB port (e.g., `/dev/ttyUSB0`):
+    ```bash
+    sudo chmod 777 /dev/ttyUSB0
+    ```
+* Edit `config.yaml` to match your ROS topics.
+
+### 2️⃣ Start ROS & Joystick (Terminal 1)
+```bash
+roscore
+# Open a new tab for the joy node (check if your device is js0 or js1)
+rosparam set joy_node/dev "/dev/input/js0"
+rosrun joy joy_node
+```
+
+### 3️⃣ Start Robot Driver (Terminal 2)
+Launch your specific Kuka driver (e.g., `iiwa_stack` or MoveIt).
+```bash
+# Example
+roslaunch iiwa_driver iiwa_bringup.launch
+```
+
+### 4️⃣ Start Gripper Bridge (Terminal 3)
+This script communicates with the hardware.
+```bash
+conda activate lerobot_env
+python3 gripper_bridge.py
+# Look for: "✅ 夹爪激活完成！"
+```
+
+### 5️⃣ Start Recorder (Terminal 4)
+This script handles the recording logic.
+```bash
+conda activate lerobot_env
+python3 lerobot_recorder_pro.py
+```
+---
+
+## 🎮 Operation & Recording
+
+1.  **Standby**: The script waits for all ROS topics to be active.
+2.  **Teleoperation (Safety First)**:
+    * The robot **will not move** unless you hold the **Deadman Switch**.
+    * **Default**: Hold **LB (Left Bumper)** on the Xbox controller.
+    * While holding LB, use the joysticks to move the robot.
+3.  **Recording**:
+    * Recording starts automatically when the script runs.
+    * Perform your task (pick and place, etc.).
+4.  **Stop & Save**:
+    * Release the LB button to stop the robot.
+    * Press **`Ctrl + C`** in Terminal 4.
+    * The script will automatically finalize and save the dataset.
+
+---
+
+## 📊 Output Dataset
+
+The data will be saved to the path defined in `config.yaml` (default: `./my_dataset_kuka_v1`).
+
+**Structure:**
+```text
+my_dataset_kuka_v1/
+├── meta/
+│   ├── info.json       # Config & frame rate
+│   ├── stats.json      # Normalization stats (Mean/Std)
+│   └── tasks.jsonl     # Task metadata
+├── episodes/           # Robot joint states & actions (.parquet)
+└── videos/             # Camera footage (.mp4)
+```
+
+**Verification:**
+To visualize the recorded data:
+```bash
+lerobot-dataset-viz --root ./my_dataset_kuka_v1 --repo-id lerobot/kuka_v1 --episode-index 0
+```
+
+---
+
+## 🐛 Troubleshooting
+
+* **`SerialException: Permission denied`**: Run `sudo chmod 777 /dev/ttyUSB0`.
+* **`Could not load libtorchcodec`**: You are missing FFmpeg. Run `conda install -c conda-forge ffmpeg`.
+* **`Missing features: {'task'}`**: Ensure you are using the provided `lerobot_recorder_pro.py`. We use a strategy where the task is passed in the data stream but removed from the feature schema to avoid validation errors in LeRobot v2.
+
+---
+
+*Happy Robot Learning!* 🚀
